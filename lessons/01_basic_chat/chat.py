@@ -8,18 +8,16 @@
 
 MODEL = "llama3.1"
 
-# TODO 2: build the messages list
-# It needs at least two messages:
-#   - a "system" message setting the model's behavior
-#   - a "user" message asking something (e.g. "What is 2 + 2?")
+# TODO 2: Build the messages list for the conversation.
+# Hint: ollama expects a list of dicts with "role" and "content" keys.
+#       Include at least a system message and a user message.
 messages = []  # replace this
 
-# TODO 3: call ollama.chat() with MODEL and messages
-# Store the return value in a variable called `response`
+# TODO 3: Send the messages to the model and store the response.
 
 
-# TODO 4: print the assistant's reply
-# The reply is at response.message.content
+# TODO 4: Print the assistant's reply.
+# Hint: it's nested a couple of levels inside the response object.
 print("=== Assistant reply ===")
 # your print here
 

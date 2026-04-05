@@ -134,53 +134,26 @@ def list_local_models() -> list[str]:
 
 
 # TODO 1: Implement run_agent_task()
-# Build the full agent loop (same pattern as lesson 03) for a single task.
-#
-# Steps:
-#   1. Initialize messages = [{"role": "user", "content": task["prompt"]}]
-#   2. Record start = time.perf_counter()
-#   3. Loop up to MAX_ITERATIONS:
-#        a. Call ollama.chat(model=model, messages=messages, tools=TOOLS)
-#        b. Append response.message to messages
-#        c. If response.message.tool_calls is non-empty → dispatch tools (TODO 2)
-#        d. Otherwise → break (model gave final answer)
-#   4. Compute latency_total_ms = (end - start) * 1000
-#   5. Return a dict with: task_name, prompt, response_text, latency_total_ms,
-#                          iterations, tool_calls_count, accuracy (call score_task)
+# Run the agent loop for a single task and return a result dict with timing,
+# iteration count, tool call count, and accuracy score.
+# Hint: the structure mirrors lesson 03's agent loop; score_task() handles accuracy.
 def run_agent_task(model: str, task: dict) -> dict:
     raise NotImplementedError("TODO 1: implement the agent loop in run_agent_task()")
 
 
-# TODO 2: Implement tool dispatch (inside run_agent_task above)
-# When response.message.tool_calls is non-empty, loop over each tool_call:
-#   name   = tool_call.function.name
-#   args   = tool_call.function.arguments
-#   fn     = TOOL_REGISTRY[name]
-#   result = fn(**args)
-#   tool_calls_count += 1
-#   append to messages: {"role": "tool", "content": str(result)}
-#
-# This is a reminder stub — the actual code goes inside run_agent_task().
-_TODO_2_REMINDER = "See TODO 2 comment — add tool dispatch inside run_agent_task()"
+# TODO 2: Dispatch tool calls inside run_agent_task().
+# Hint: same pattern as lesson 03 — name, args, registry lookup, append result message.
 
 
 # TODO 3: Implement score_task()
-# Return True if the expected string appears anywhere in the response (case-insensitive).
-# Hint: use `expected.lower() in response.lower()`
+# Return True if the expected answer appears in the model's response.
 def score_task(response: str, expected: str) -> bool:
     raise NotImplementedError("TODO 3: implement score_task()")
 
 
 # TODO 4: Implement benchmark_agent()
-# Run run_agent_task() for each task, then aggregate results:
-#   - avg_latency_total_ms: average of latency_total_ms across runs
-#   - avg_iterations: average iterations
-#   - total_tool_calls: sum of tool_calls_count
-#   - tasks_correct: sum of accuracy scores
-#   - task_success_rate: tasks_correct / len(runs)
-#
-# Return a dict with: model, avg_latency_total_ms, avg_iterations,
-#                     total_tool_calls, tasks_correct, task_count, task_success_rate, runs
+# Run run_agent_task() for each task and aggregate the results across runs.
+# Hint: the return dict should include averages, totals, and task success rate.
 def benchmark_agent(model: str, tasks: list[dict]) -> dict:
     print(f"  Benchmarking {model}...", flush=True)
     runs = []
@@ -193,13 +166,8 @@ def benchmark_agent(model: str, tasks: list[dict]) -> dict:
 
 
 # TODO 5: Implement print_table()
-# Print an ASCII table with these columns:
-#   Model | Avg Latency | Avg Iters | Tool Calls | Accuracy (e.g. "3/3")
-#
-# After the table, print a per-task accuracy breakdown showing PASS/FAIL
-# for each model on each task.
-#
-# Hint: look at lesson 00's print_table() in compare.py for the column-width pattern.
+# Print an ASCII table comparing model performance, then a per-task PASS/FAIL breakdown.
+# Hint: lesson 00's print_table() uses the same column-width technique.
 def print_table(results: list[dict]) -> None:
     raise NotImplementedError("TODO 5: implement print_table()")
 

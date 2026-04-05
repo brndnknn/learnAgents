@@ -59,39 +59,29 @@ TOOLS = [
 def run_agent(prompt: str) -> str:
     """Run the agent loop until the model gives a final text answer."""
 
-    # TODO 1: initialize `messages` as a list with one dict:
-    # role="user", content=prompt
+    # TODO 1: Initialize the messages list with the user's prompt.
     messages = []  # replace this
 
     for iteration in range(MAX_ITERATIONS):
         print(f"\n--- iteration {iteration + 1} ---")
 
-        # TODO 2: call ollama.chat() with MODEL, messages, and tools=TOOLS
-        # Store the result in `response`
+        # TODO 2: Call the model with the current messages and available tools.
 
         # Append the model's message to history so it sees its own reasoning
         messages.append(response.message)
 
-        # TODO 3: check if response.message.tool_calls is non-empty
-        # If yes: dispatch the tools (see TODO 4)
-        # If no:  break out of the loop (see TODO 5)
+        # TODO 3: Decide what to do based on the model's response —
+        #         did it request a tool call, or provide a final answer?
 
         # TODO 4 (inside the "yes" branch):
-        # Loop over response.message.tool_calls. For each tool_call:
-        #   name = tool_call.function.name
-        #   args = tool_call.function.arguments
-        #   fn   = TOOL_REGISTRY[name]
-        #   result = fn(**args)
-        #   print(f"  tool {name}({args}) → {result}")
-        #   append to messages: role="tool", content=str(result)
+        # Dispatch any tool calls and append their results to messages.
+        # Hint: tool_call.function gives you the name and arguments dict;
+        #       tool results go back as "tool" role messages.
 
         # TODO 5 (inside the "no" branch):
-        # print("  model gave final answer")
         # break
 
-    # TODO 6: return the final assistant content
-    # It's in the last message. If the loop hit MAX_ITERATIONS without a
-    # text answer, return a fallback string like "Agent hit iteration limit."
+    # TODO 6: Return the model's final answer (or a fallback if MAX_ITERATIONS was hit).
     pass  # replace this
 
 

@@ -21,17 +21,17 @@ def add_numbers(a: float, b: float) -> float:
 # Each schema tells the model: what the tool is called, what it does,
 # and what arguments it takes. See README.md for the full format.
 
-# TODO 1: write the schema dict for get_weather
-# It has one required string parameter: "city"
+# TODO 1: Write the JSON Schema dict for get_weather.
+# Hint: tool schemas follow OpenAI-style function schema format —
+#       look at the TOOLS list structure in the README.
 get_weather_schema = {}  # replace this
 
-# TODO 2: write the schema dict for add_numbers
-# It has two required number parameters: "a" and "b"
+# TODO 2: Write the JSON Schema dict for add_numbers.
 add_numbers_schema = {}  # replace this
 
 # Collect schemas into a list to pass to ollama.chat()
 TOOLS = [
-    # TODO (part of 1 & 2): add your two schema dicts here
+    # TODO (part of 1 & 2): add your two schema dicts here — one per tool
 ]
 
 # --- Dispatch map: tool name → Python function ---
@@ -48,18 +48,12 @@ user_prompt = "What's the weather like in Tokyo?"
 
 print(f"User: {user_prompt}\n")
 
-# TODO 3: call ollama.chat() with MODEL, a messages list containing user_prompt,
-# and tools=TOOLS. Store the result in `response`.
+# TODO 3: Send the user prompt to the model with your tool schemas attached.
 
 
-# TODO 4: check if response.message.tool_calls is non-empty
-# Print "Model wants to call a tool!" or "Model replied directly: <content>"
+# TODO 4: Check whether the model chose to call a tool or reply directly,
+#         and print the outcome.
 
 
-# TODO 5: if there are tool calls, loop over response.message.tool_calls
-# For each tool_call:
-#   - get the function name:  tool_call.function.name
-#   - get the arguments dict: tool_call.function.arguments
-#   - look up the function in DISPATCH
-#   - call it with **arguments
-#   - print the result
+# TODO 5: Dispatch any requested tool calls using DISPATCH and print each result.
+# Hint: each tool_call has a .function attribute with .name and .arguments.

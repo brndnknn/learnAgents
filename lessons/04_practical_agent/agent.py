@@ -31,21 +31,18 @@ def list_files(directory: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# TODO 3: implement calculate(expression: str) -> str
+# TODO 3: Implement calculate(expression: str) -> str
 # Safely evaluate a math expression and return the result as a string.
-# Use the ast-based approach from README.md — do NOT use eval() directly.
 # If the expression is invalid, return an error string.
+# Hint: see the README for a safe alternative to eval().
 # ---------------------------------------------------------------------------
 def calculate(expression: str) -> str:
     pass  # replace this
 
 
 # ---------------------------------------------------------------------------
-# TODO 4: write tool schemas for all three functions.
-# Follow the same format as Lesson 2/3.
-# read_file    → one required string param: "path"
-# list_files   → one required string param: "directory"
-# calculate    → one required string param: "expression"
+# TODO 4: Write tool schemas for read_file, list_files, and calculate.
+# Follow the same format used in lesson 02/03.
 # ---------------------------------------------------------------------------
 
 read_file_schema = {}      # replace this
