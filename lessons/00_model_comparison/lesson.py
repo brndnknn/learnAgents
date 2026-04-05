@@ -29,7 +29,15 @@ RESULTS_FILE = os.path.join(os.path.dirname(__file__), "results.json")
 # Call ollama.list() and return a list of model name strings.
 # Hint: the response has a .models attribute; each model object has a .model attribute.
 def list_local_models() -> list[str]:
-    raise NotImplementedError("TODO 1: implement list_local_models()")
+    
+    models = ollama.list().models
+
+    model_names = []
+
+    for model in models:
+        model_names.append(model.model)
+
+    return model_names
 
 
 def run_timed_chat(model: str, prompt: str) -> dict:
@@ -50,17 +58,28 @@ def run_timed_chat(model: str, prompt: str) -> dict:
     #   - If chunk.message.content is non-empty and first_token_time is None:
     #       set first_token_time = time.perf_counter()
     #   - Append chunk.message.content to full_text
-
+    stream = ollama.chat(
+        model=model,
+        messages=messages,
+        stream=True
+    )
+    for chunk in stream:
+        if chunk.message.content != '':
+            if first_token_time is None:
+                first_token_time = time.perf_counter()
+            full_text += chunk.message.content
     # TODO 3: Capture token_count from the final stream chunk.
     # Inside your loop from TODO 2, add:
     #   if chunk.done and chunk.eval_count:
     #       token_count = chunk.eval_count
     # Then compute tokens_per_second below.
+        if chunk.done and chunk.eval_count:
+            token_count = chunk.eval_count
 
     end = time.perf_counter()
     total_ms = (end - start) * 1000
     first_token_ms = (first_token_time - start) * 1000 if first_token_time else total_ms
-    tokens_per_second = 0.0  # replace: token_count / (end - start)
+    tokens_per_second = token_count / (end - start)  # replace: token_count / (end - start)
 
     return {
         "prompt": prompt,
@@ -93,8 +112,24 @@ def benchmark_model(model: str, prompts: list[str]) -> dict:
         result = run_timed_chat(model, prompt)
         runs.append(result)
 
-    raise NotImplementedError("TODO 4: compute averages and return the stats dict")
+    first_token_total = 0
+    response_time_total = 0
+    total_tokens = 0
+    for run in runs:
+        first_token_total += run["latency_first_token_ms"]
+        response_time_total += run["latency_total_ms"]
+        total_tokens += run["token_count"]
+    
+    run_count = len(prompts)
 
+    return {
+        "model": model,
+        "avg_latency_first_token_ms": round(first_token_total/run_count, 1),
+        "avg_latency_total_ms": round(response_time_total/run_count, 1),
+        "avg_tokens_per_second": round((total_tokens / response_time_total) * 1000, 1),
+        "total_tokens": total_tokens,
+        "runs": runs
+    }
 
 # TODO 5: Implement print_table()
 # Print a formatted ASCII table comparing all models.
@@ -109,8 +144,23 @@ def benchmark_model(model: str, prompts: list[str]) -> dict:
 #
 # Hint: use f-string alignment: f"{'text':<width}" (left) or f"{'text':>width}" (right)
 def print_table(results: list[dict]) -> None:
-    raise NotImplementedError("TODO 5: implement print_table()")
 
+    final_prompt_runs = []
+    print('-' * 80)
+    print(f"{'Model':^14} | First Token (avg ms) | Total Time (avg ms) | Tokens/sec | Tokens")
+    print('-' * 80)
+    for result in results:
+        print(f"{result["model"][:13]:<14} | {result["avg_latency_first_token_ms"]:<20} | {result["avg_latency_total_ms"]:>19} | {result["avg_tokens_per_second"]:<10} | {result["total_tokens"]:<6}")
+        print('-' * 80)
+        final_prompt_runs.append({
+            "model": result["model"],
+            "response": result["runs"][-1]["response_text"]
+        })
+    final_prompt = results[0]["runs"][-1]["prompt"]
+    print(final_prompt)
+    for run in final_prompt_runs:
+        print(run["model"])
+        print(run["response"][:120])
 
 def save_json(results: list[dict], path: str) -> None:
     with open(path, "w") as f:
