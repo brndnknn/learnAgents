@@ -16,27 +16,35 @@ import time
 
 import ollama
 
+VISION_MODEL_KEYWORDS = ("vision",)
+EMBED_MODEL_KEYWORDS = ("embed",)
+
 DEFAULT_PROMPTS = [
     "What is 17 * 23?",
     "Name the capital of France.",
     "Explain async/await in Python in 2 sentences.",
 ]
 
-RESULTS_FILE = os.path.join(os.path.dirname(__file__), "results.json")
+OUTPUTS_DIR = os.path.join(os.path.dirname(__file__), "outputs")
+RESULTS_FILE = os.path.join(OUTPUTS_DIR, "results.json")
 
 
 # TODO 1: Implement list_local_models()
 # Call ollama.list() and return a list of model name strings.
 # Hint: the response has a .models attribute; each model object has a .model attribute.
-def list_local_models() -> list[str]:
-    
-    models = ollama.list().models
-
+def list_local_models(vision: str = "none") -> list[str]:
     model_names = []
-
-    for model in models:
-        model_names.append(model.model)
-
+    for m in ollama.list().models:
+        name = m.model.lower()
+        is_vision = any(kw in name for kw in VISION_MODEL_KEYWORDS)
+        is_embed = any(kw in name for kw in EMBED_MODEL_KEYWORDS)
+        if is_embed:
+            continue
+        if vision == "none" and is_vision:
+            continue
+        if vision == "only" and not is_vision:
+            continue
+        model_names.append(m.model)
     return model_names
 
 
@@ -106,6 +114,8 @@ def run_timed_chat(model: str, prompt: str) -> dict:
 # The print statements below are already provided — add your code after them.
 def benchmark_model(model: str, prompts: list[str]) -> dict:
     print(f"  Benchmarking {model}...", flush=True)
+    print(f"    loading model into memory...", flush=True)
+    ollama.generate(model=model, prompt="", keep_alive=-1)
     runs = []
     for prompt in prompts:
         print(f"    prompt: {prompt[:60]}", flush=True)
@@ -121,6 +131,8 @@ def benchmark_model(model: str, prompts: list[str]) -> dict:
         total_tokens += run["token_count"]
     
     run_count = len(prompts)
+    print(f"    unloading model from memory...", flush=True)
+    ollama.generate(model=model, prompt="", keep_alive=0)
 
     return {
         "model": model,
@@ -163,6 +175,7 @@ def print_table(results: list[dict]) -> None:
         print(run["response"][:120])
 
 def save_json(results: list[dict], path: str) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"Full results saved to: {path}")
@@ -180,9 +193,15 @@ def main():
         "--prompt",
         help="Use a single custom prompt instead of the default set"
     )
+    parser.add_argument(
+        "--vision",
+        choices=["none", "only", "all"],
+        default="none",
+        help="none (default): skip vision models | only: vision models only | all: include vision models"
+    )
     args = parser.parse_args()
 
-    models = args.models or list_local_models()
+    models = args.models or list_local_models(vision=args.vision)
     if not models:
         print("No models found. Run `ollama pull llama3.1` to get started.")
         return
