@@ -5,7 +5,7 @@
 
 import ollama
 
-MODEL = "llama3.1"
+MODEL = "llama3.2:3b"
 MAX_ITERATIONS = 10
 
 # --- Tool implementations (already done) ---
@@ -55,34 +55,62 @@ TOOLS = [
     },
 ]
 
+client = ollama.Client()
 
 def run_agent(prompt: str) -> str:
     """Run the agent loop until the model gives a final text answer."""
 
     # TODO 1: Initialize the messages list with the user's prompt.
-    messages = []  # replace this
+    messages = [
+        {"role": "system", "content": "you are a helpful AI assistant with the ability to use tools"},
+        {"role": "user", "content": prompt}
+    ]  # replace this
 
     for iteration in range(MAX_ITERATIONS):
         print(f"\n--- iteration {iteration + 1} ---")
 
         # TODO 2: Call the model with the current messages and available tools.
+        response = client.chat(
+            model=MODEL,
+            tools=TOOLS,
+            messages=messages
+        )
 
         # Append the model's message to history so it sees its own reasoning
         messages.append(response.message)
+        print(response.message)
 
         # TODO 3: Decide what to do based on the model's response —
         #         did it request a tool call, or provide a final answer?
-
+        if response.message.tool_calls:
+            print("model called a tool")
+            for tool_called in response.message.tool_calls:
+                print(tool_called)
+                fn = TOOL_REGISTRY[tool_called.function.name]
+                if tool_called.function.name == 'add_numbers':
+                    args = {k: float(v) for k, v in tool_called.function.arguments.items()}
+                else:
+                    args = tool_called.function.arguments
         # TODO 4 (inside the "yes" branch):
         # Dispatch any tool calls and append their results to messages.
         # Hint: tool_call.function gives you the name and arguments dict;
         #       tool results go back as "tool" role messages.
-
+                result = fn(**args)
+                messages.append({
+                    "role": "tool",
+                    "content": str(result),
+                })
+                print(result)
+                print(messages)
         # TODO 5 (inside the "no" branch):
-        # break
+        else:
+            break
 
     # TODO 6: Return the model's final answer (or a fallback if MAX_ITERATIONS was hit).
-    pass  # replace this
+    if iteration == MAX_ITERATIONS:
+        return "Max Interations met before model stopped calling tools"
+    else:
+        return response.message.content
 
 
 # --- Run it ---
